@@ -70,6 +70,7 @@ CATALOGS: list[tuple[str, dict[str, str]]] = [
                 "webshop.public.order_items"
             ),
             "kafka.hide-internal-columns": "false",
+            "kafka.table-description-supplier": "CONFLUENT",
             "kafka.confluent-schema-registry-url": KAFKA_SCHEMA_REGISTRY,
             "kafka.config.resources": "/etc/trino/kafka-client.properties",
         },
