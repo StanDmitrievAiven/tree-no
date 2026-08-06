@@ -22,9 +22,6 @@ echo "---"
 : "${TRINO_CATALOG_ENCRYPTION_KEY:?TRINO_CATALOG_ENCRYPTION_KEY must be supplied as an application secret}"
 : "${SUMMIT_PG_PASSWORD:?SUMMIT_PG_PASSWORD must be supplied as an application secret}"
 : "${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD must be supplied as an application secret}"
-: "${KAFKA_ACCESS_KEY:?KAFKA_ACCESS_KEY must be supplied as an application secret}"
-: "${KAFKA_ACCESS_CERT:?KAFKA_ACCESS_CERT must be supplied as an application secret}"
-: "${KAFKA_CA_CERT:?KAFKA_CA_CERT must be supplied as an application secret}"
 
 # --- Password authentication ---
 echo "Configuring password authentication for gateway service account."
