@@ -31,6 +31,9 @@ class TrinoClient:
             # database rather than forwarding a conflicting identity upstream.
             "X-Trino-User": self._service_user,
             "X-Trino-Source": "trino-hub-mcp",
+            # Trino's password authenticator requires HTTPS. The gateway
+            # terminates TLS at the public edge and Trino trusts this marker.
+            "X-Forwarded-Proto": "https",
         }
         deadline = time.monotonic() + self._timeout_seconds
         with httpx.Client(
