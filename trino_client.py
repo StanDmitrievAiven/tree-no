@@ -26,7 +26,10 @@ class TrinoClient:
     def query(self, sql: str, user: str) -> dict[str, Any]:
         statement = validate_read_only_sql(sql)
         headers = {
-            "X-Trino-User": user,
+            # Trino password authentication requires the requested user to match
+            # the Basic-auth principal. The gateway retains `user` in its audit
+            # database rather than forwarding a conflicting identity upstream.
+            "X-Trino-User": self._service_user,
             "X-Trino-Source": "trino-hub-mcp",
         }
         deadline = time.monotonic() + self._timeout_seconds

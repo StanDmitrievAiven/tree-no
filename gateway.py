@@ -102,7 +102,9 @@ async def proxy_to_trino(request: Request, path: str = "") -> Response:
         for key, value in request.headers.items()
         if key.lower() not in _HOP_BY_HOP | {"authorization"}
     }
-    headers["X-Trino-User"] = identity.actor_id
+    # The upstream Trino password authenticator requires this header to match
+    # the Basic-auth service principal used for the proxied request.
+    headers["X-Trino-User"] = os.environ["TRINO_SERVICE_USER"]
     headers["X-Forwarded-Proto"] = "https"
     headers["X-Forwarded-For"] = request.client.host if request.client else "unknown"
     upstream = os.environ.get("TRINO_INTERNAL_URL", "http://127.0.0.1:8080")
