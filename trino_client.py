@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import time
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 
@@ -73,7 +74,7 @@ class TrinoClient:
             next_uri = payload.get("nextUri")
             if not next_uri:
                 break
-            response = client.get(next_uri)
+            response = client.get(self._internal_uri(next_uri))
         return {
             "query_id": query_id,
             "columns": columns,
@@ -82,18 +83,29 @@ class TrinoClient:
             "truncated": len(rows) >= self._row_limit,
         }
 
-    @staticmethod
-    def _cancel(client: httpx.Client, response: httpx.Response) -> None:
+    def _internal_uri(self, uri: str) -> str:
+        """Keep Trino polling traffic on the local plaintext listener.
+
+        `X-Forwarded-Proto: https` is required for password authentication, but
+        it also makes Trino emit HTTPS polling URLs. TLS ends at the public
+        gateway; the internal Trino listener is HTTP only.
+        """
+        internal = urlsplit(self._base_url)
+        requested = urlsplit(uri)
+        return urlunsplit(
+            (internal.scheme, internal.netloc, requested.path, requested.query, "")
+        )
+
+    def _cancel(self, client: httpx.Client, response: httpx.Response) -> None:
         try:
             payload = response.json()
-            TrinoClient._cancel_url(client, payload.get("nextUri"))
+            self._cancel_url(client, payload.get("nextUri"))
         except (ValueError, httpx.HTTPError):
             return
 
-    @staticmethod
-    def _cancel_url(client: httpx.Client, next_uri: str | None) -> None:
+    def _cancel_url(self, client: httpx.Client, next_uri: str | None) -> None:
         if next_uri:
             try:
-                client.delete(next_uri)
+                client.delete(self._internal_uri(next_uri))
             except httpx.HTTPError:
                 pass
